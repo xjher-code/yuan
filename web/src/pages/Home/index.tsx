@@ -16,8 +16,6 @@ import {
   EyeOutlined,
   LikeOutlined,
   MessageOutlined,
-  FireOutlined,
-  ClockCircleOutlined,
 } from '@ant-design/icons'
 import { postApi, boardApi } from '../../services/api'
 import dayjs from 'dayjs'
