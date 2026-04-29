@@ -27,6 +27,13 @@ export function BoardManage() {
   const [modalVisible, setModalVisible] = useState(false)
   const [editingBoard, setEditingBoard] = useState<BoardItem | null>(null)
   const [form] = Form.useForm()
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetchBoards()
@@ -121,19 +128,35 @@ export function BoardManage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <h2>板块管理</h2>
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchBoards}>
+      <div style={{
+        marginBottom: 16,
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        gap: 12,
+        justifyContent: 'space-between',
+      }}>
+        <h2 style={{ margin: 0 }}>板块管理</h2>
+        <Space wrap>
+          <Button icon={<ReloadOutlined />} onClick={fetchBoards} size={isMobile ? 'small' : 'middle'}>
             刷新
           </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal} size={isMobile ? 'small' : 'middle'}>
             添加板块
           </Button>
         </Space>
       </div>
 
-      <Table rowKey="id" columns={columns} dataSource={boards} loading={loading} />
+      <div style={{ overflowX: 'auto' }}>
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={boards}
+          loading={loading}
+          scroll={isMobile ? { x: 'max-content' } : undefined}
+          size={isMobile ? 'small' : 'middle'}
+        />
+      </div>
 
       <Modal
         title={editingBoard ? '编辑板块' : '添加板块'}

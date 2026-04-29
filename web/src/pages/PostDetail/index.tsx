@@ -91,6 +91,13 @@ export function PostDetail() {
   const [replyContent, setReplyContent] = useState('')
   const [liked, setLiked] = useState(false)
   const [collected, setCollected] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     if (id) {
@@ -263,14 +270,14 @@ export function PostDetail() {
 
   if (loading || !post) {
     return (
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
         <Skeleton active paragraph={{ rows: 10 }} />
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
       <Card>
         {/* 标题区域 */}
         <div style={{ marginBottom: 24 }}>
@@ -384,11 +391,12 @@ export function PostDetail() {
             borderTop: '1px solid #f0f0f0',
           }}
         >
-          <Space size={24}>
+          <div style={{ display: 'flex', gap: isMobile ? 8 : 24, flexWrap: 'wrap' }}>
             <Button
               icon={liked ? <LikeFilled /> : <LikeOutlined />}
               type={liked ? 'primary' : 'default'}
               onClick={handleLike}
+              size={isMobile ? 'small' : 'middle'}
             >
               点赞 {post.likeCount > 0 && `(${post.likeCount})`}
             </Button>
@@ -396,13 +404,14 @@ export function PostDetail() {
               icon={collected ? <StarFilled /> : <StarOutlined />}
               type={collected ? 'primary' : 'default'}
               onClick={handleCollect}
+              size={isMobile ? 'small' : 'middle'}
             >
               收藏 {post.collectCount > 0 && `(${post.collectCount})`}
             </Button>
-            <Button icon={<MessageOutlined />}>
+            <Button icon={<MessageOutlined />} size={isMobile ? 'small' : 'middle'}>
               评论 {post.commentCount > 0 && `(${post.commentCount})`}
             </Button>
-          </Space>
+          </div>
         </div>
       </Card>
 
@@ -413,7 +422,7 @@ export function PostDetail() {
         {/* 发表评论 */}
         <div style={{ marginBottom: 24 }}>
           <TextArea
-            rows={3}
+            rows={isMobile ? 2 : 3}
             placeholder="发表你的评论..."
             value={commentContent}
             onChange={(e) => setCommentContent(e.target.value)}
@@ -423,6 +432,8 @@ export function PostDetail() {
             type="primary"
             icon={<SendOutlined />}
             onClick={handleComment}
+            block={isMobile}
+            size={isMobile ? 'small' : 'middle'}
           >
             发表评论
           </Button>
@@ -457,16 +468,17 @@ export function PostDetail() {
                   </Button>
                 ),
               ]}
+              style={isMobile ? { padding: '12px 0' } : undefined}
             >
               <List.Item.Meta
                 avatar={
-                  <Avatar src={comment.author.avatarUrl} style={{ backgroundColor: '#1677ff' }}>
+                  <Avatar src={comment.author.avatarUrl} size={isMobile ? 28 : 32} style={{ backgroundColor: '#1677ff' }}>
                     {comment.author.username[0]}
                   </Avatar>
                 }
                 title={
-                  <Space>
-                    <Text strong>{comment.author.username}</Text>
+                  <Space size={isMobile ? 4 : 8}>
+                    <Text strong style={{ fontSize: isMobile ? 13 : 14 }}>{comment.author.username}</Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {dayjs(comment.createdAt).format('YYYY-MM-DD HH:mm')}
                     </Text>
@@ -474,8 +486,8 @@ export function PostDetail() {
                 }
                 description={
                   <div>
-                    <div style={{ marginTop: 8, marginBottom: 8 }}>{comment.content}</div>
-                    <Text type="secondary">
+                    <div style={{ marginTop: 8, marginBottom: 8, fontSize: isMobile ? 14 : 15 }}>{comment.content}</div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
                       <LikeOutlined /> {comment.likeCount}
                     </Text>
 
@@ -502,19 +514,19 @@ export function PostDetail() {
 
                     {/* 子评论 */}
                     {comment.replies && comment.replies.length > 0 && (
-                      <div style={{ marginTop: 12, paddingLeft: 24, borderLeft: '2px solid #f0f0f0' }}>
+                      <div style={{ marginTop: 12, paddingLeft: isMobile ? 12 : 24, borderLeft: '2px solid #f0f0f0' }}>
                         {comment.replies.map((reply) => (
                           <div key={reply.id} style={{ marginBottom: 12 }}>
-                            <Space>
-                              <Avatar src={reply.author.avatarUrl} size="small" style={{ backgroundColor: '#1677ff' }}>
+                            <Space size={isMobile ? 4 : 8}>
+                              <Avatar src={reply.author.avatarUrl} size={20} style={{ backgroundColor: '#1677ff' }}>
                                 {reply.author.username[0]}
                               </Avatar>
-                              <Text strong style={{ fontSize: 14 }}>{reply.author.username}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>
+                              <Text strong style={{ fontSize: 13 }}>{reply.author.username}</Text>
+                              <Text type="secondary" style={{ fontSize: 11 }}>
                                 {dayjs(reply.createdAt).format('YYYY-MM-DD HH:mm')}
                               </Text>
                             </Space>
-                            <div style={{ marginTop: 4, marginLeft: 32 }}>{reply.content}</div>
+                            <div style={{ marginTop: 4, marginLeft: isMobile ? 28 : 32, fontSize: isMobile ? 14 : 15 }}>{reply.content}</div>
                           </div>
                         ))}
                       </div>

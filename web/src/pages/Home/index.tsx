@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Card,
@@ -63,7 +63,15 @@ export function Home() {
   const [sort, setSort] = useState<'new' | 'hot'>('new')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const pageSize = 20
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // 获取板块列表
   useEffect(() => {
@@ -97,31 +105,54 @@ export function Home() {
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px' }}>
       <Title level={2} style={{ marginBottom: 16 }}>最新帖子</Title>
       {/* 筛选栏 */}
-      <Card style={{ marginBottom: 16 }}>
-        <Space wrap style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space>
+      <Card style={{ marginBottom: 16 }} className="filter-card">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: isMobile ? 'nowrap' : 'wrap',
+          }}
+        >
+          <div
+            ref={scrollRef}
+            style={{
+              display: 'flex',
+              gap: 8,
+              overflowX: 'auto',
+              flex: 1,
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+              paddingBottom: 4,
+            }}
+          >
             <Button
+              size={isMobile ? 'small' : 'middle'}
               type={currentBoard === undefined ? 'primary' : 'default'}
               onClick={() => {
                 setCurrentBoard(undefined)
                 setPage(1)
               }}
+              style={isMobile ? { flexShrink: 0 } : undefined}
             >
               全部
             </Button>
             {boards.map((board) => (
               <Button
                 key={board.id}
+                size={isMobile ? 'small' : 'middle'}
                 type={currentBoard === board.id ? 'primary' : 'default'}
                 onClick={() => {
                   setCurrentBoard(board.id)
                   setPage(1)
                 }}
+                style={isMobile ? { flexShrink: 0 } : undefined}
               >
                 {board.icon} {board.name}
               </Button>
             ))}
-          </Space>
+          </div>
 
           <Select
             value={sort}
@@ -129,13 +160,14 @@ export function Home() {
               setSort(value)
               setPage(1)
             }}
-            style={{ width: 100 }}
+            style={{ width: isMobile ? 80 : 100 }}
+            size={isMobile ? 'small' : 'middle'}
             options={[
               { value: 'new', label: '最新' },
               { value: 'hot', label: '最热' },
             ]}
           />
-        </Space>
+        </div>
       </Card>
 
       {/* 帖子列表 */}
@@ -146,60 +178,61 @@ export function Home() {
             emptyText: <Empty description="暂无帖子" />,
           }}
           renderItem={(post) => (
-            <List.Item
-              key={post.id}
-              style={{
-                padding: '16px 0',
-                borderBottom: '1px solid #f0f0f0',
-                cursor: 'pointer',
-              }}
-              onClick={() => navigate(`/post/${post.id}`)}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Avatar
-                    src={post.author.avatarUrl}
-                    style={{ backgroundColor: '#1677ff' }}
-                  >
-                    {post.author.username[0]}
-                  </Avatar>
-                }
-                title={
-                  <Space>
-                    {post.isTop && (
-                      <Tag color="red">置顶</Tag>
-                    )}
-                    {post.isEssence && (
-                      <Tag color="gold">精华</Tag>
-                    )}
-                    <Text strong style={{ fontSize: 16 }}>
-                      {post.title}
-                    </Text>
-                    <Tag>{post.board.name}</Tag>
-                  </Space>
-                }
-                description={
-                  <div>
-                    <Text type="secondary">
-                      {post.author.username} · {dayjs(post.createdAt).fromNow()}
-                    </Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Space size={16}>
-                        <Text type="secondary">
-                          <EyeOutlined /> {post.viewCount}
-                        </Text>
-                        <Text type="secondary">
-                          <LikeOutlined /> {post.likeCount}
-                        </Text>
-                        <Text type="secondary">
-                          <MessageOutlined /> {post.commentCount}
-                        </Text>
-                      </Space>
+              <List.Item
+                key={post.id}
+                style={{
+                  padding: isMobile ? '12px 0' : '16px 0',
+                  borderBottom: '1px solid #f0f0f0',
+                  cursor: 'pointer',
+                }}
+                onClick={() => navigate(`/post/${post.id}`)}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Avatar
+                      src={post.author.avatarUrl}
+                      size={isMobile ? 36 : 40}
+                      style={{ backgroundColor: '#1677ff' }}
+                    >
+                      {post.author.username[0]}
+                    </Avatar>
+                  }
+                  title={
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                      {post.isTop && (
+                        <Tag color="red" style={{ marginRight: 0, fontSize: isMobile ? 11 : 12 }}>置顶</Tag>
+                      )}
+                      {post.isEssence && (
+                        <Tag color="gold" style={{ marginRight: 0, fontSize: isMobile ? 11 : 12 }}>精华</Tag>
+                      )}
+                      <Text strong style={{ fontSize: isMobile ? 14 : 16, wordBreak: 'break-word' }}>
+                        {post.title}
+                      </Text>
+                      <Tag style={{ fontSize: isMobile ? 11 : 12, marginLeft: 'auto' }}>{post.board.name}</Tag>
                     </div>
-                  </div>
-                }
-              />
-            </List.Item>
+                  }
+                  description={
+                    <div>
+                      <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+                        {post.author.username} · {dayjs(post.createdAt).fromNow()}
+                      </Text>
+                      <div style={{ marginTop: 6 }}>
+                        <Space size={isMobile ? 12 : 16}>
+                          <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+                            <EyeOutlined /> {post.viewCount}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+                            <LikeOutlined /> {post.likeCount}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+                            <MessageOutlined /> {post.commentCount}
+                          </Text>
+                        </Space>
+                      </div>
+                    </div>
+                  }
+                />
+              </List.Item>
           )}
         />
 

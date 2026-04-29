@@ -34,6 +34,13 @@ export function PostEditor() {
   const [coverImage, setCoverImage] = useState<string>()
   const [loading, setLoading] = useState(false)
   const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     // 获取板块列表
@@ -162,25 +169,27 @@ export function PostEditor() {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
       <Card
         title={isEdit ? '编辑帖子' : '发布新帖'}
         extra={
-          <Space>
-            <Button onClick={handleCancel}>取消</Button>
-            <Button type="primary" onClick={handleSubmit} loading={loading}>
-              {isEdit ? '保存' : '发布'}
-            </Button>
-          </Space>
+          isMobile ? undefined : (
+            <Space>
+              <Button onClick={handleCancel}>取消</Button>
+              <Button type="primary" onClick={handleSubmit} loading={loading}>
+                {isEdit ? '保存' : '发布'}
+              </Button>
+            </Space>
+          )
         }
       >
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <Space direction="vertical" style={{ width: '100%' }} size={isMobile ? 'middle' : 'large'}>
           {/* 标题 */}
           <Input
             placeholder="请输入标题"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            size="large"
+            size={isMobile ? 'middle' : 'large'}
             maxLength={200}
             showCount
           />
@@ -190,7 +199,7 @@ export function PostEditor() {
             placeholder="选择板块"
             value={boardId}
             onChange={setBoardId}
-            style={{ width: 200 }}
+            style={{ width: isMobile ? '100%' : 200 }}
             options={boards.map((board) => ({
               value: board.id,
               label: board.name,
@@ -209,7 +218,7 @@ export function PostEditor() {
               maxCount={1}
               listType="picture"
             >
-              <Button icon={<UploadOutlined />}>上传封面图</Button>
+              <Button icon={<UploadOutlined />} size={isMobile ? 'small' : 'middle'}>上传封面图</Button>
             </Upload>
           </div>
 
@@ -218,13 +227,23 @@ export function PostEditor() {
             <MDEditor
               value={content}
               onChange={(value) => setContent(value || '')}
-              height={500}
+              height={isMobile ? 300 : 500}
               preview="edit"
               textareaProps={{
                 placeholder: '请输入内容，支持 Markdown 格式...\n可以直接粘贴图片',
               }}
             />
           </div>
+
+          {/* 移动端底部操作按钮 */}
+          {isMobile && (
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Button onClick={handleCancel} style={{ flex: 1 }}>取消</Button>
+              <Button type="primary" onClick={handleSubmit} loading={loading} style={{ flex: 1 }}>
+                {isEdit ? '保存' : '发布'}
+              </Button>
+            </div>
+          )}
 
           {/* 提示 */}
           <div style={{ color: '#999', fontSize: 12 }}>

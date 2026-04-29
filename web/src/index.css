@@ -66,6 +66,76 @@ body {
   margin: 0;
 }
 
+/* ========== 移动端适配 (Mobile Adaptation) ========== */
+
+/* 小屏幕：≤ 768px (手机) */
+@media (max-width: 768px) {
+  #root {
+    border-inline: none;
+  }
+
+  :root {
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin: 20px 0;
+  }
+  h2 {
+    font-size: 18px;
+  }
+
+  .ant-card-body {
+    padding: 16px !important;
+  }
+}
+
+/* 中屏幕：769px ~ 1024px (小平板) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #root {
+    width: 100%;
+    border-inline: none;
+  }
+}
+
+/* 移动端通用辅助类 */
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: initial;
+  }
+}
+
+/* 移动端分页紧凑模式 */
+@media (max-width: 768px) {
+  .ant-pagination {
+    font-size: 13px;
+  }
+  .ant-pagination .ant-pagination-item {
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+/* 移动端标签紧凑模式 */
+@media (max-width: 768px) {
+  .ant-tabs-nav {
+    margin-bottom: 12px !important;
+  }
+  .ant-tabs-tab {
+    padding: 8px 0 !important;
+    font-size: 14px !important;
+  }
+}
+
 /* 触摸目标 > 44px 移动端标准 */
 .ant-btn {
   min-height: 44px;

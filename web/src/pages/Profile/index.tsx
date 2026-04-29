@@ -61,6 +61,13 @@ export function Profile() {
 
   const userId = id ? Number(id) : currentUser?.id
   const isSelf = currentUser?.id === userId
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     if (userId) {
@@ -134,26 +141,32 @@ export function Profile() {
 
   if (loading || !profile) {
     return (
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
         <Skeleton active paragraph={{ rows: 6 }} />
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
       {/* 用户信息卡片 */}
       <Card>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{
+          display: 'flex',
+          alignItems: isMobile ? 'center' : 'center',
+          gap: isMobile ? 16 : 24,
+          flexDirection: isMobile ? 'column' : 'row',
+          textAlign: isMobile ? 'center' : 'left',
+        }}>
           <Avatar
             src={profile.avatarUrl}
-            size={80}
-            style={{ backgroundColor: '#1677ff', fontSize: 32 }}
+            size={isMobile ? 64 : 80}
+            style={{ backgroundColor: '#1677ff', fontSize: isMobile ? 28 : 32, flexShrink: 0 }}
           >
             {profile.username[0]}
           </Avatar>
           <div style={{ flex: 1 }}>
-            <Title level={3} style={{ marginBottom: 8 }}>
+            <Title level={isMobile ? 4 : 3} style={{ marginBottom: 8 }}>
               {profile.username}
               {profile.role === 'admin' && (
                 <Tag color="red" style={{ marginLeft: 8 }}>
@@ -161,41 +174,41 @@ export function Profile() {
                 </Tag>
               )}
             </Title>
-            <Text type="secondary">学号: {profile.studentNo}</Text>
+            <Text type="secondary" style={{ fontSize: isMobile ? 13 : 14 }}>学号: {profile.studentNo}</Text>
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary">
+              <Text type="secondary" style={{ fontSize: isMobile ? 13 : 14 }}>
                 加入时间: {dayjs(profile.createdAt).format('YYYY-MM-DD')}
               </Text>
             </div>
             {profile.bio && (
               <div style={{ marginTop: 8 }}>
-                <Text>{profile.bio}</Text>
+                <Text style={{ fontSize: isMobile ? 14 : 15 }}>{profile.bio}</Text>
               </div>
             )}
           </div>
-          <div>
+          <div style={isMobile ? { marginTop: 0 } : undefined}>
             {!isSelf && (
-              <Button type={isFollowing ? 'default' : 'primary'} onClick={handleFollow}>
+              <Button type={isFollowing ? 'default' : 'primary'} onClick={handleFollow} size={isMobile ? 'small' : 'middle'}>
                 {isFollowing ? '已关注' : '关注'}
               </Button>
             )}
             {isSelf && (
-              <Button icon={<EditOutlined />} onClick={() => navigate('/settings')}>
+              <Button icon={<EditOutlined />} onClick={() => navigate('/settings')} size={isMobile ? 'small' : 'middle'}>
                 编辑资料
               </Button>
             )}
           </div>
         </div>
 
-        <Row style={{ marginTop: 24 }} gutter={16}>
+        <Row style={{ marginTop: 24 }} gutter={isMobile ? 8 : 16}>
           <Col span={8}>
-            <Statistic title="关注" value={followCounts.following} />
+            <Statistic title="关注" value={followCounts.following} valueStyle={{ fontSize: isMobile ? 20 : 24 }} />
           </Col>
           <Col span={8}>
-            <Statistic title="粉丝" value={followCounts.followers} />
+            <Statistic title="粉丝" value={followCounts.followers} valueStyle={{ fontSize: isMobile ? 20 : 24 }} />
           </Col>
           <Col span={8}>
-            <Statistic title="文章" value={posts.length} />
+            <Statistic title="文章" value={posts.length} valueStyle={{ fontSize: isMobile ? 20 : 24 }} />
           </Col>
         </Row>
       </Card>
@@ -215,28 +228,28 @@ export function Profile() {
                   renderItem={(post) => (
                     <List.Item
                       key={post.id}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', padding: isMobile ? '12px 0' : '16px 0' }}
                       onClick={() => navigate(`/post/${post.id}`)}
                     >
                       <List.Item.Meta
                         title={
-                          <Space>
-                            <Text strong>{post.title}</Text>
-                            <Tag>{post.board.name}</Tag>
+                          <Space size={isMobile ? 4 : 8}>
+                            <Text strong style={{ fontSize: isMobile ? 14 : 16 }}>{post.title}</Text>
+                            <Tag style={{ fontSize: isMobile ? 11 : 12 }}>{post.board.name}</Tag>
                           </Space>
                         }
                         description={
-                          <Space size={16}>
-                            <Text type="secondary">
+                          <Space size={isMobile ? 8 : 16} wrap>
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
                               <EyeOutlined /> {post.viewCount}
                             </Text>
-                            <Text type="secondary">
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
                               <LikeOutlined /> {post.likeCount}
                             </Text>
-                            <Text type="secondary">
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
                               <MessageOutlined /> {post.commentCount}
                             </Text>
-                            <Text type="secondary">
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
                               {dayjs(post.createdAt).format('YYYY-MM-DD')}
                             </Text>
                           </Space>

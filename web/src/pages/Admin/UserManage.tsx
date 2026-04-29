@@ -29,6 +29,13 @@ export function UserManage() {
   const [modalVisible, setModalVisible] = useState(false)
   const [form] = Form.useForm()
   const [pagination, setPagination] = useState({ current: 1, pageSize: 20, total: 0 })
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetchUsers()
@@ -155,28 +162,40 @@ export function UserManage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <h2>用户管理</h2>
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchUsers}>
+      <div style={{
+        marginBottom: 16,
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        gap: 12,
+        justifyContent: 'space-between',
+      }}>
+        <h2 style={{ margin: 0 }}>用户管理</h2>
+        <Space wrap>
+          <Button icon={<ReloadOutlined />} onClick={fetchUsers} size={isMobile ? 'small' : 'middle'}>
             刷新
           </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalVisible(true)} size={isMobile ? 'small' : 'middle'}>
             添加用户
           </Button>
         </Space>
       </div>
 
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={users}
-        loading={loading}
-        pagination={{
-          ...pagination,
-          onChange: (page) => setPagination({ ...pagination, current: page }),
-        }}
-      />
+      <div style={{ overflowX: 'auto' }}>
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={users}
+          loading={loading}
+          scroll={isMobile ? { x: 'max-content' } : undefined}
+          size={isMobile ? 'small' : 'middle'}
+          pagination={{
+            ...pagination,
+            onChange: (page) => setPagination({ ...pagination, current: page }),
+            size: isMobile ? 'small' : 'default',
+          }}
+        />
+      </div>
 
       <Modal
         title="添加用户"

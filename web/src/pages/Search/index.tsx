@@ -41,6 +41,13 @@ export function Search() {
   const [trending, setTrending] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('posts')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetchTrending()
@@ -96,15 +103,15 @@ export function Search() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
       <Card>
         <Input.Search
           placeholder="搜索文章、用户..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onSearch={handleSearch}
-          enterButton={<><SearchOutlined /> 搜索</>}
-          size="large"
+          enterButton={isMobile ? undefined : <><SearchOutlined /> 搜索</>}
+          size={isMobile ? 'middle' : 'large'}
         />
 
         {!searchQuery && (
@@ -112,11 +119,11 @@ export function Search() {
             <Title level={5}>
               <FireOutlined /> 热门内容
             </Title>
-            <Space wrap>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {trending.map((item) => (
                 <Tag
                   key={item.id}
-                  style={{ cursor: 'pointer', padding: '4px 12px' }}
+                  style={{ cursor: 'pointer', padding: '4px 12px', fontSize: isMobile ? 13 : 14 }}
                   onClick={() => {
                     setQuery(item.title)
                     setSearchQuery(item.title)
@@ -126,7 +133,7 @@ export function Search() {
                   {item.title}
                 </Tag>
               ))}
-            </Space>
+            </div>
           </div>
         )}
       </Card>
@@ -150,26 +157,26 @@ export function Search() {
               renderItem={(post) => (
                 <List.Item
                   key={post.id}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', padding: isMobile ? '12px 0' : '16px 0' }}
                   onClick={() => navigate(`/post/${post.id}`)}
                 >
                   <List.Item.Meta
                     avatar={
-                      <Avatar src={post.author.avatarUrl} style={{ backgroundColor: '#1677ff' }}>
+                      <Avatar src={post.author.avatarUrl} size={isMobile ? 36 : 40} style={{ backgroundColor: '#1677ff' }}>
                         {post.author.username[0]}
                       </Avatar>
                     }
-                    title={<Text strong>{post.title}</Text>}
+                    title={<Text strong style={{ fontSize: isMobile ? 14 : 16 }}>{post.title}</Text>}
                     description={
                       <div>
-                        <Text type="secondary">
-                          {post.author.username} · {post.board.name} · {dayjs(post.createdAt).format('YYYY-MM-DD')}
+                        <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+                          {post.author.username} · {post.board.name} · {dayjs(post.createdAt).format('MM-DD')}
                         </Text>
                         <div style={{ marginTop: 4 }}>
-                          <Space size={16}>
-                            <Text type="secondary"><EyeOutlined /> {post.viewCount}</Text>
-                            <Text type="secondary"><LikeOutlined /> {post.likeCount}</Text>
-                            <Text type="secondary"><MessageOutlined /> {post.commentCount}</Text>
+                          <Space size={isMobile ? 12 : 16}>
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}><EyeOutlined /> {post.viewCount}</Text>
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}><LikeOutlined /> {post.likeCount}</Text>
+                            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}><MessageOutlined /> {post.commentCount}</Text>
                           </Space>
                         </div>
                       </div>
@@ -188,17 +195,17 @@ export function Search() {
               renderItem={(user) => (
                 <List.Item
                   key={user.id}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', padding: isMobile ? '12px 0' : '16px 0' }}
                   onClick={() => navigate(`/profile/${user.id}`)}
                 >
                   <List.Item.Meta
                     avatar={
-                      <Avatar src={user.avatarUrl} style={{ backgroundColor: '#1677ff' }}>
+                      <Avatar src={user.avatarUrl} size={isMobile ? 36 : 40} style={{ backgroundColor: '#1677ff' }}>
                         {user.username[0]}
                       </Avatar>
                     }
-                    title={<Text strong>{user.username}</Text>}
-                    description={<Text type="secondary">学号: {user.studentNo}</Text>}
+                    title={<Text strong style={{ fontSize: isMobile ? 14 : 16 }}>{user.username}</Text>}
+                    description={<Text type="secondary" style={{ fontSize: isMobile ? 13 : 14 }}>学号: {user.studentNo}</Text>}
                   />
                 </List.Item>
               )}

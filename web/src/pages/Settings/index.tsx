@@ -16,6 +16,13 @@ import { useAuthStore } from '../../stores/auth'
 
 export function Settings() {
   const { user, updateUser } = useAuthStore()
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   const [profileForm] = Form.useForm()
   const [passwordForm] = Form.useForm()
   const [loading, setLoading] = useState(false)
@@ -61,7 +68,7 @@ export function Settings() {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
       <Card title="个人设置">
         <Tabs
           items={[

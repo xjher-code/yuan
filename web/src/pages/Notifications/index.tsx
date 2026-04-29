@@ -38,6 +38,13 @@ export function Notifications() {
   const [loading, setLoading] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [activeTab, setActiveTab] = useState('all')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetchNotifications()
@@ -109,18 +116,16 @@ export function Notifications() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: isMobile ? '12px 8px' : '24px 16px' }}>
       <Card
         title={
-          <Space>
-            <Badge count={unreadCount}>
-              <span style={{ fontSize: 18, fontWeight: 'bold' }}>通知中心</span>
-            </Badge>
-          </Space>
+          <Badge count={unreadCount} size={isMobile ? 'small' : 'default'}>
+            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 'bold' }}>通知中心</span>
+          </Badge>
         }
         extra={
           unreadCount > 0 && (
-            <Button type="link" onClick={handleMarkAllAsRead}>
+            <Button type="link" size={isMobile ? 'small' : 'middle'} onClick={handleMarkAllAsRead}>
               全部已读
             </Button>
           )
@@ -137,9 +142,9 @@ export function Notifications() {
             {
               key: 'unread',
               label: (
-                <Space>
-                  未读通知
-                  {unreadCount > 0 && <Badge count={unreadCount} />}
+                <Space size={4}>
+                  未读
+                  {unreadCount > 0 && <Badge count={unreadCount} size="small" />}
                 </Space>
               ),
             },
@@ -154,7 +159,7 @@ export function Notifications() {
             <List.Item
               style={{
                 backgroundColor: item.isRead ? 'transparent' : '#f0f7ff',
-                padding: '16px',
+                padding: isMobile ? '12px' : '16px',
                 borderRadius: 8,
                 marginBottom: 8,
               }}
@@ -164,6 +169,7 @@ export function Notifications() {
                     type="link"
                     size="small"
                     onClick={() => handleMarkAsRead(item.id)}
+                    style={isMobile ? { fontSize: 12, padding: '0 4px' } : undefined}
                   >
                     标记已读
                   </Button>
@@ -180,17 +186,17 @@ export function Notifications() {
               <List.Item.Meta
                 avatar={getIcon(item.type)}
                 title={
-                  <Space>
-                    <Text strong={!item.isRead}>{item.title}</Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {dayjs(item.createdAt).format('YYYY-MM-DD HH:mm')}
+                  <Space size={isMobile ? 4 : 8} wrap>
+                    <Text strong={!item.isRead} style={{ fontSize: isMobile ? 14 : 15 }}>{item.title}</Text>
+                    <Text type="secondary" style={{ fontSize: 11 }}>
+                      {dayjs(item.createdAt).format('MM-DD HH:mm')}
                     </Text>
                   </Space>
                 }
                 description={
                   <Text
                     type={item.isRead ? 'secondary' : undefined}
-                    style={{ marginTop: 4 }}
+                    style={{ marginTop: 4, fontSize: isMobile ? 13 : 14 }}
                   >
                     {item.content}
                   </Text>
