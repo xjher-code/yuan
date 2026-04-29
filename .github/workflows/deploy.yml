@@ -1,0 +1,120 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'ghcr.io' }}
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install API dependencies
+        working-directory: ./api
+        run: npm ci
+
+      - name: Run API tests
+        working-directory: ./api
+        run: npm run test -- --passWithNoTests
+
+      - name: Install Web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Run Web lint
+        working-directory: ./web
+        run: npm run lint
+
+  build:
+    name: Build Docker Images
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/yuan-api:latest
+            ${{ env.DOCKER_REGISTRY }}/yuan-api:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/yuan-web:latest
+            ${{ env.DOCKER_REGISTRY }}/yuan-web:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Server
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat > .env << 'ENVEOF'
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          MEILI_MASTER_KEY=${{ secrets.MEILI_MASTER_KEY }}
+          MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+          ENVEOF
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /app/yuan
+
+            # Pull latest images
+            docker compose -f docker-compose.prod.yml pull
+
+            # Restart services
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Clean up old images
+            docker image prune -f
+
+      - name: Health check
+        run: |
+          echo "Deployment triggered successfully!"
+          echo "API: http://${{ secrets.SSH_HOST }}/api"
+          echo "Web: http://${{ secrets.SSH_HOST }}"
