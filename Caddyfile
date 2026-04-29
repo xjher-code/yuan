@@ -1,0 +1,8 @@
+dlovey.cn {
+    reverse_proxy web:80
+}
+
+# Optional: Redirect www to non-www
+www.dlovey.cn {
+    redir https://dlovey.cn{uri} permanent
+}
